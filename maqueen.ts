@@ -35,6 +35,7 @@ interface KV {
 }
 
 //% weight=10 color=#008B00 icon="\uf136" block="Maqueen"
+//% groups=['micro:bit(v2)']
 namespace maqueen {
     let kbCallback: KV[] = []
     export class Packeta {
@@ -99,77 +100,141 @@ namespace maqueen {
         turnOff = 0x00
     }
 
-    // //% advanced=true shim=maqueenIR::initIR
-    // function initIR(pin: Pins): void {
-    //     return
-    // }
+    //% advanced=true shim=maqueenIR::initIR
+    function initIR(pin: Pins): void {
+        return
+    }
 
-    // //% advanced=true shim=maqueenIR::onPressEvent
-    // function onPressEvent(btn: RemoteButton, body: Action): void {
-    //     return
-    // }
+    //% advanced=true shim=maqueenIR::onPressEvent
+    function onPressEvent(btn: RemoteButton, body: Action): void {
+        return
+    }
 
-    // //% advanced=true shim=maqueenIR::getParam
-    // function getParam(): number {
-    //     return 0
-    // }
+    //% advanced=true shim=maqueenIR::getParam
+    function getParam(): number {
+        return 0
+    }
 
-    // function maqueenInit(): void {
-    //     if (alreadyInit == 1) {
-    //         return
-    //     }
-    //     initIR(Pins.P16)
-    //     alreadyInit = 1
-    // }
+    function maqueenInit(): void {
+        if (alreadyInit == 1) {
+            return
+        }
+        initIR(Pins.P16)
+        alreadyInit = 1
+    }
 
-    // //% weight=2
-    // //% blockGap=50
-    // //% blockId=IR_callbackUser block="on IR received"
-    // export function IR_callbackUser(maqueencb: (message: number) => void) {
-    //     maqueenInit();
-    //     IR_callback(() => {
-    //         const packet = new Packeta();
-    //         packet.mye = maqueene;
-    //         maqueenparam = getParam();
-    //         packet.myparam = maqueenparam;
-    //         maqueencb(packet.myparam);
-    //     });
-    // }
+    //% weight=2
+    //% blockGap=50
+    //% blockId=IR_callbackUser block="on IR received"
+    //% draggableParameters
+    export function IR_callbackUser(maqueencb: (message: number) => void) {
+        maqueenInit();
+        IR_callback(() => {
+            const packet = new Packeta();
+            packet.mye = maqueene;
+            maqueenparam = getParam();
+            packet.myparam = maqueenparam;
+            maqueencb(packet.myparam);
+        });
+    }
 
-    // /**
-    //  * Read IR sensor value.
-    //  */
+    /**
+     * Read IR sensor value.
+     */
 
-    // //% weight=10
-    // //% blockId=IR_read block="read IR key value"
-    // export function IR_read(): number {
-    //     maqueenInit()
-    //     return getParam()
-    // }
+    //% weight=10
+    //% blockId=IR_read block="read IR key value"
+    export function IR_read(): number {
+        maqueenInit()
+        return getParam()
+    }
+    /**
+     * Read IR sensor value V2.
+     */
 
-    // /**
-    //  * Read the version number.
-    //  */
+    //% advanced=true shim=maqueenIRV2::irCode
+    function irCode(): number {
+        return 0;
+    }
+    
+    //% weight=5
+    //% group="micro:bit(v2)"
+    //% blockId=IR_readv2 block="read IR key value"
+    export function IR_readV2(): number {
+        return valuotokeyConversion();
+    }
 
-    // //% weight=10
-    // //% blockId=IR_read_version block="get product information"
-    //export function IR_read_version(): string {
-        // maqueenInit()
-        // pins.i2cWriteNumber(0x10, 50, NumberFormat.UInt8BE);
-        // let dataLen = pins.i2cReadNumber(0x10, NumberFormat.UInt8BE);
-        // pins.i2cWriteNumber(0x10, 51, NumberFormat.UInt8BE);
-        // let buf = pins.i2cReadBuffer(0x10, dataLen, false);
-        // let version = "";
-        // for (let index = 0; index < dataLen; index++) {
-        //     version += String.fromCharCode(buf[index])
-        // }
-        // return version
-   // }
+    //% weight=2
+    //% group="micro:bit(v2)"
+    //% blockId=IR_callbackUserv2 block="on IR received"
+    //% draggableParameters
+    export function IR_callbackUserV2(cb: (message: number) => void) {
+        control.onEvent(11, 22, function() {
+            cb(irstate)
+        }) 
+    }
+
+function valuotokeyConversion():number{
+    let irdata:number;
+    switch(irCode()){
+        case 0xff00:irdata = 0;break;
+        case 0xfe01:irdata = 1;break;
+        case 0xfd02:irdata = 2;break;
+        case 0xfb04:irdata = 4;break;
+        case 0xfa05:irdata = 5;break;
+        case 0xf906:irdata = 6;break;
+        case 0xf708:irdata = 8;break;
+        case 0xf609:irdata = 9;break;
+        case 0xf50a:irdata = 10;break;
+        case 0xf30c:irdata = 12;break;
+        case 0xf20d:irdata = 13;break;
+        case 0xf10e:irdata = 14;break;
+        case 0xef10:irdata = 16;break;
+        case 0xee11:irdata = 17;break;
+        case 0xed12:irdata = 18;break;
+        case 0xeb14:irdata = 20;break;
+        case 0xea15:irdata = 21;break;
+        case 0xe916:irdata = 22;break;
+        case 0xe718:irdata = 24;break;
+        case 0xe619:irdata = 25;break;
+        case 0xe51a:irdata = 20;break;
+        default:
+         irdata = -1;
+    }
+    return irdata;
+}
+
+let irstate:number
+    basic.forever(() => {
+        irstate = valuotokeyConversion();
+        if(irstate != -1){
+            control.raiseEvent(11, 22)
+        }
+        basic.pause(20);
+    })
+    /**
+     * Read the version number.
+     */
+
+    //% weight=10
+    //% blockId=IR_read_version block="get product information"
+    export function IR_read_version(): string {
+        maqueenInit()
+        pins.i2cWriteNumber(0x10, 50, NumberFormat.UInt8BE);
+        let dataLen = pins.i2cReadNumber(0x10, NumberFormat.UInt8BE);
+        pins.i2cWriteNumber(0x10, 51, NumberFormat.UInt8BE);
+        let buf = pins.i2cReadBuffer(0x10, dataLen, false);
+        let version = "";
+        for (let index = 0; index < dataLen; index++) {
+            version += String.fromCharCode(buf[index])
+        }
+        return version
+   }
 
     function IR_callback(a: Action): void {
-        // maqueencb = a
-        // IrPressEvent += 1
-        // onPressEvent(IrPressEvent, maqueencb)
+        maqueencb = a
+        IrPressEvent += 1
+        onPressEvent(IrPressEvent, maqueencb)
     }
 
     /**
@@ -360,5 +425,6 @@ namespace maqueen {
         }
         basic.pause(50);
     })
+   
 
 }
