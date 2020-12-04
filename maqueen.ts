@@ -125,7 +125,7 @@ namespace maqueen {
         alreadyInit = 1
     }
 
-    //% weight=2
+    //% weight=9
     //% blockGap=50
     //% blockId=IR_callbackUser block="on IR received"
     //% draggableParameters
@@ -221,7 +221,7 @@ function valuotokeyConversion():number{
      * Read the version number.
      */
 
-    //% weight=10
+    //% weight=8
     //% blockId=IR_read_version block="get product information"
     export function IR_read_version(): string {
         maqueenInit()
