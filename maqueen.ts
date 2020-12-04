@@ -37,6 +37,8 @@ interface KV {
 //% weight=10 color=#008B00 icon="\uf136" block="Maqueen"
 //% groups=['micro:bit(v2)']
 namespace maqueen {
+    let irstate:number;
+    let state:number;
     let kbCallback: KV[] = []
     export class Packeta {
         public mye: string;
@@ -169,6 +171,7 @@ namespace maqueen {
     //% blockId=IR_callbackUserv2 block="on IR received"
     //% draggableParameters
     export function IR_callbackUserV2(cb: (message: number) => void) {
+        state = 1;
         control.onEvent(11, 22, function() {
             cb(irstate)
         }) 
@@ -204,12 +207,14 @@ function valuotokeyConversion():number{
     return irdata;
 }
 
-let irstate:number
     basic.forever(() => {
-        irstate = valuotokeyConversion();
-        if(irstate != -1){
-            control.raiseEvent(11, 22)
+        if(state == 1){
+            irstate = valuotokeyConversion();
+            if(irstate != -1){
+                control.raiseEvent(11, 22)
+            }
         }
+        
         basic.pause(20);
     })
     /**
